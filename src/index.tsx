@@ -7,6 +7,7 @@ import {
   staticClasses,
   ToggleField,
   Navigation,
+  SliderField, 
 } from "decky-frontend-lib";
 import { VFC, useEffect, useState } from "react";
 import { Trans } from 'react-i18next'
@@ -19,18 +20,25 @@ import { QUICK_ACCESS_MENU, SELECT, WARNING } from "./ButtonIcons";
 const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
 
   const [enableOverlay, setEnableOverlay] = useState<boolean>(false);
+  const [opacity, setOpacity] = useState<number>(state.GetOpacity());
 
   useEffect(() => {
     setEnableOverlay(state.GetState());
+    setOpacity(state.GetOpacity());
     state.onStateChanged(onStateChanged);
+    state.onOpacityChanged(onOpacityChanged);
     return () => {
       state.offStateChanged(onStateChanged);
+      state.offOpacityChanged(onOpacityChanged);
     };
   }, []);
 
   const onStateChanged = (b: boolean) => {
     setEnableOverlay(b);
   }
+  const onOpacityChanged = (o: number) => {
+    setOpacity(o);
+  };
 
   return (
     <div>
@@ -47,6 +55,24 @@ const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
           <ToggleField checked={enableOverlay}
             label={t("toggle_enableoverlay_label")}
             description={<Trans i18nKey="toggle_enableoverlay_description" components={{ Key: <QUICK_ACCESS_MENU style={{ height: "18px", width: "auto", marginBottom: "-5px" }} /> }} />} onChange={(b) => { state.SetState(b); Navigation.CloseSideMenus(); }} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <SliderField
+            label={t("overlay_opacity_label")}
+            description={
+              <Trans
+                i18nKey="overlay_opacity_description"
+                />
+              }
+            value={opacity}
+            min={0.0}
+            max={1.0}
+            step={0.05}
+            showValue={true}
+            onChange={(val: number) => {
+              state.SetOpacity(val);
+            }}
+          />
         </PanelSectionRow>
       <PanelSectionRow>
           <div className={staticClasses.Label} style={{ paddingLeft: "0px", paddingRight: "0px" }}>

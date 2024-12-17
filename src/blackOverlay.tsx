@@ -31,6 +31,9 @@ export class State {
     private state = false;
     private onStateChangedListeners: Array<(b: boolean) => void> = [];
 
+    private opacity = 1.0;
+    private onOpacityChangedListeners: Array<(o: number) => void> = [];
+
     onStateChanged(callback: (b: boolean) => void) {
         this.onStateChangedListeners.push(callback);
     }
@@ -55,16 +58,35 @@ export class State {
     GetState(): boolean {
         return this.state;
     }
+
+    SetOpacity(o: number) {
+        const clamped = Math.max(0, Math.min(1, o));
+        if (this.opacity === clamped) return;
+        this.opacity = clamped;
+        this.onOpacityChangedListeners.forEach(cb => cb(this.opacity));
+    }
+    GetOpacity(): number {
+        return this.opacity;
+    }
+    onOpacityChanged(callback: (o: number) => void) {
+        this.onOpacityChangedListeners.push(callback);
+    }
+    offOpacityChanged(callback: (o: number) => void) {
+        const index = this.onOpacityChangedListeners.indexOf(callback);
+        if (index !== -1) {
+            this.onOpacityChangedListeners.splice(index, 1);
+        }
+    }
 }
 
-export const BlackBackground: VFC = () => {
+export const BlackBackground: VFC<{ opacity: number }> = ({ opacity }) => {
     useUIComposition(UIComposition.Notification);
     return (
         <div style={{
             height: "100vh",
             width: "100vw",
             background: "#000000",
-            opacity: 1,
+            opacity: opacity,
             zIndex: 7002,
             position: "fixed",
             pointerEvents: "none"
@@ -74,16 +96,19 @@ export const BlackBackground: VFC = () => {
 
 export const BlackOverlay: VFC<{ state: State }> = ({ state }) => {
     const [visible, setVisible] = useState(false);
+    const [opacity, setOpacity] = useState(state.GetOpacity());
 
     useEffect(() => {
         state.onStateChanged(onStateChanged);
-        const suspend_register = SteamClient.User.RegisterForPrepareForSystemSuspendProgress(((data: any[]) => {
+        state.onOpacityChanged(onOpacityChanged);
+        const suspend_register = SteamClient.User.RegisterForPrepareForSystemSuspendProgress((() => {
             state.SetState(false);
         }));
         const input = new Input([Button.QUICK_ACCESS_MENU, Button.SELECT]);
         input.onShortcutPressed(onShortcutPressed);
         return () => {
             state.offStateChanged(onStateChanged);
+            state.offOpacityChanged(onOpacityChanged);
             suspend_register.unregister();
             input.offShortcutPressed(onShortcutPressed);
             input.unregister();
@@ -98,11 +123,14 @@ export const BlackOverlay: VFC<{ state: State }> = ({ state }) => {
         setVisible(b);
     }
 
+    const onOpacityChanged = (o: number) => {
+        setOpacity(o);
+    };
 
     return (
         <>
             {visible &&
-                <BlackBackground />
+                <BlackBackground opacity={opacity} />
             }
         </>
     );
