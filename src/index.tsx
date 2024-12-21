@@ -20,7 +20,15 @@ import { QUICK_ACCESS_MENU, SELECT, WARNING } from "./ButtonIcons";
 const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
 
   const [enableOverlay, setEnableOverlay] = useState<boolean>(false);
+  const [isFullBrightness, setIsFullBrightness] = useState<boolean>(false);
   const [opacity, setOpacity] = useState<number>(state.GetOpacity());
+
+  const handleToggleFullBrightness = (enable: boolean) => {
+    setIsFullBrightness(enable);
+    if (enable) {
+      SteamClient.System.Display.SetBrightness(1.0);
+    }
+  }
 
   useEffect(() => {
     setEnableOverlay(state.GetState());
@@ -56,24 +64,36 @@ const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
             label={t("toggle_enableoverlay_label")}
             description={<Trans i18nKey="toggle_enableoverlay_description" components={{ Key: <QUICK_ACCESS_MENU style={{ height: "18px", width: "auto", marginBottom: "-5px" }} /> }} />} onChange={(b) => { state.SetState(b); Navigation.CloseSideMenus(); }} />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <SliderField
-            label={t("overlay_opacity_label")}
-            description={
-              <Trans
-                i18nKey="overlay_opacity_description"
-                />
-              }
-            value={opacity}
-            min={0.0}
-            max={1.0}
-            step={0.05}
-            showValue={true}
-            onChange={(val: number) => {
-              state.SetOpacity(val);
+        <PanelSection>
+          <PanelSectionRow>
+            <ToggleField
+              checked={isFullBrightness}
+              label={t("oled_saver_label")}
+              description={<Trans i18nKey="oled_saver_description" />}
+              onChange={handleToggleFullBrightness}
+            />
+          </PanelSectionRow>
+          {isFullBrightness && (
+            <PanelSectionRow>
+              <SliderField
+                label={t("overlay_opacity_label")}
+                description={
+                  <Trans
+                    i18nKey="overlay_opacity_description"
+                  />
+                }
+                value={opacity}
+                min={0.0}
+                max={1.0}
+                step={0.05}
+                showValue={true}
+                onChange={(val: number) => {
+                  state.SetOpacity(val);
             }}
           />
         </PanelSectionRow>
+        )}
+        </PanelSection>
       <PanelSectionRow>
           <div className={staticClasses.Label} style={{ paddingLeft: "0px", paddingRight: "0px" }}>
             <Trans

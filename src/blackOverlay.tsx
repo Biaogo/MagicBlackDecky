@@ -31,7 +31,7 @@ export class State {
     private state = false;
     private onStateChangedListeners: Array<(b: boolean) => void> = [];
 
-    private opacity = 1.0;
+    private opacity = 1;
     private onOpacityChangedListeners: Array<(o: number) => void> = [];
 
     onStateChanged(callback: (b: boolean) => void) {
