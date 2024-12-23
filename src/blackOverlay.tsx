@@ -34,6 +34,8 @@ export class State {
     private opacity = 1;
     private onOpacityChangedListeners: Array<(o: number) => void> = [];
 
+    private oled = false;
+    private onOledChangedListeners: Array<(l: boolean) => void> = [];
     onStateChanged(callback: (b: boolean) => void) {
         this.onStateChangedListeners.push(callback);
     }
@@ -59,6 +61,30 @@ export class State {
         return this.state;
     }
 
+        onOledChanged(callback: (l: boolean) => void) {
+        this.onOledChangedListeners.push(callback);
+    }
+
+    offOledChanged(callback: (l: boolean) => void) {
+        const index = this.onOledChangedListeners.indexOf(callback);
+        if (index !== -1) {
+            this.onOledChangedListeners.splice(index, 1);
+        }
+    }
+
+    SetOled(l: boolean) {
+        if (this.oled === l)
+            return;
+
+        this.oled = l;
+        this.onOledChangedListeners.forEach(callback => {
+            callback(l);
+        });
+    }
+
+    GetOled(): boolean {
+        return this.oled;
+    }
     SetOpacity(o: number) {
         const clamped = Math.max(0, Math.min(1, o));
         if (this.opacity === clamped) return;

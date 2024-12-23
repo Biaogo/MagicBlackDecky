@@ -27,16 +27,21 @@ const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
     setIsFullBrightness(enable);
     if (enable) {
       SteamClient.System.Display.SetBrightness(1.0);
+
     }
+    state.SetOled(enable);
   }
 
   useEffect(() => {
     setEnableOverlay(state.GetState());
+    setIsFullBrightness(state.GetOled());
     setOpacity(state.GetOpacity());
     state.onStateChanged(onStateChanged);
+    state.onOledChanged(onOledChanged);
     state.onOpacityChanged(onOpacityChanged);
     return () => {
       state.offStateChanged(onStateChanged);
+      state.offOledChanged(onOledChanged);
       state.offOpacityChanged(onOpacityChanged);
     };
   }, []);
@@ -44,6 +49,11 @@ const Content: VFC<{ serverAPI: ServerAPI, state: State }> = ({ state }) => {
   const onStateChanged = (b: boolean) => {
     setEnableOverlay(b);
   }
+
+  const onOledChanged = (l: boolean) => {
+    setIsFullBrightness(l);
+  };
+  
   const onOpacityChanged = (o: number) => {
     setOpacity(o);
   };
